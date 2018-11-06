@@ -2095,7 +2095,7 @@ void Heap::RecomputeLimits(GarbageCollector collector) {
         isolate()->isolate_data()->external_memory_;
     isolate()->isolate_data()->external_memory_limit_ =
         isolate()->isolate_data()->external_memory_ +
-        kExternalAllocationSoftLimit;
+        external_memory_soft_limit();
 
     old_generation_allocation_limit_ =
         MemoryController<V8HeapTrait>::CalculateAllocationLimit(
@@ -2793,7 +2793,7 @@ void Heap::ConfigureInitialOldGenerationSize() {
   if (!old_generation_size_configured_ && tracer()->SurvivalEventsRecorded()) {
     const size_t minimum_growing_step =
         MemoryController<V8HeapTrait>::MinimumAllocationLimitGrowingStep(
-            CurrentHeapGrowingMode());
+            this, CurrentHeapGrowingMode());
     const size_t new_old_generation_allocation_limit =
         Max(OldGenerationSizeOfObjects() + minimum_growing_step,
             static_cast<size_t>(
@@ -3246,6 +3246,10 @@ bool Heap::HasHighFragmentation(size_t used, size_t committed) {
   // Fragmentation is high if committed > 2 * used + kSlack.
   // Rewrite the exression to avoid overflow.
   DCHECK_GE(committed, used);
+  if (FLAG_configure_heap_details) {
+    return committed - used > used + high_fragmentation_slack_;
+  }
+
   return committed - used > used + kSlack;
 }
 
@@ -4579,6 +4583,54 @@ void Heap::ConfigureHeap(const v8::ResourceConstraints& constraints) {
   code_range_size_ = constraints.code_range_size_in_bytes();
 
   configured_ = true;
+}
+
+void Heap::ConfigureHeapDetails(size_t min_allocation_limit_growing_step_size,
+                                size_t high_fragmentation_slack,
+                                int external_allocation_hard_limit,
+                                int external_allocation_soft_limit) {
+  if (configured_details_) return;
+
+  if (FLAG_configure_heap_details) {
+    // Configure detailed constraints by flags
+    if (FLAG_minimum_allocation_limit_growing_step_size) {
+      min_allocation_limit_growing_step_size_ =
+          FLAG_minimum_allocation_limit_growing_step_size;
+    }
+    if (FLAG_high_fragmentation_slack) {
+      high_fragmentation_slack_ = FLAG_high_fragmentation_slack;
+    }
+    if (FLAG_external_allocation_hard_limit) {
+      external_allocation_hard_limit_ = FLAG_external_allocation_hard_limit;
+    }
+    if (FLAG_external_allocation_soft_limit) {
+      external_allocation_soft_limit_ = FLAG_external_allocation_soft_limit;
+    }
+  }
+
+  // Configure detailed constraints by each app
+  if (min_allocation_limit_growing_step_size)
+    min_allocation_limit_growing_step_size_ =
+        min_allocation_limit_growing_step_size;
+  if (high_fragmentation_slack)
+    high_fragmentation_slack_ = high_fragmentation_slack;
+  if (external_allocation_hard_limit)
+    external_allocation_hard_limit_ = external_allocation_hard_limit;
+  if (external_allocation_soft_limit)
+    external_allocation_soft_limit_ = external_allocation_soft_limit;
+
+  if (FLAG_trace_configure_heap_details) {
+    PrintIsolate(isolate_,
+                 "MinAllocationLimitGrowingStepSize: %6zu"
+                 ", high_fragmentation_slack_: %6zu"
+                 ", external_allocation_hard_limit_: %d"
+                 ", external_allocation_soft_limit_: %d\n",
+                 min_allocation_limit_growing_step_size_,
+                 high_fragmentation_slack_, external_allocation_hard_limit_,
+                 external_allocation_soft_limit_);
+  }
+
+  configured_details_ = true;
 }
 
 void Heap::AddToRingBuffer(const char* string) {

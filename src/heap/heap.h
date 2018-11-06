@@ -591,7 +591,19 @@ class Heap {
   // For post mortem debugging.
   void RememberUnmappedPage(Address page, bool compacted);
 
-  int64_t external_memory_hard_limit() { return max_old_generation_size_ / 2; }
+  int64_t external_memory_hard_limit() {
+    if (FLAG_configure_heap_details) {
+      return external_allocation_hard_limit_ * MB;
+    }
+    return MaxOldGenerationSize() / 2;
+  }
+
+  int external_memory_soft_limit() {
+    if (FLAG_configure_heap_details) {
+      return external_allocation_soft_limit_ * MB;
+    }
+    return kExternalAllocationSoftLimit;
+  }
 
   V8_INLINE int64_t external_memory();
   V8_INLINE void update_external_memory(int64_t delta);
@@ -641,6 +653,10 @@ class Heap {
 
   void ConfigureHeap(const v8::ResourceConstraints& constraints);
   void ConfigureHeapDefault();
+  void ConfigureHeapDetails(size_t min_allocation_limit_growing_step_size,
+                            size_t high_fragmentation_slack,
+                            int external_allocation_hard_limit,
+                            int external_allocation_soft_limit);
 
   // Prepares the heap, setting up for deserialization.
   void SetUp();
@@ -1369,6 +1385,10 @@ class Heap {
   // Calculates the nof entries for the full sized number to string cache.
   inline int MaxNumberToStringCacheSize() const;
 
+  size_t min_allocation_limit_growing_step_size() const {
+    return min_allocation_limit_growing_step_size_;
+  }
+
  private:
   using ExternalStringTableUpdaterCallback = String (*)(Heap* heap,
                                                         FullObjectSlot pointer);
@@ -1844,6 +1864,10 @@ class Heap {
   bool old_generation_size_configured_ = false;
   size_t maximum_committed_ = 0;
   size_t old_generation_capacity_after_bootstrap_ = 0;
+  size_t min_allocation_limit_growing_step_size_ = 0;
+  size_t high_fragmentation_slack_ = 0;
+  int external_allocation_hard_limit_ = 0;
+  int external_allocation_soft_limit_ = 0;
 
   // Backing store bytes (array buffers and external strings).
   std::atomic<size_t> backing_store_bytes_{0};
@@ -2039,6 +2063,7 @@ class Heap {
   // Flag is set when the heap has been configured.  The heap can be repeatedly
   // configured through the API until it is set up.
   bool configured_ = false;
+  bool configured_details_ = false;
 
   // Currently set GC flags that are respected by all GC components.
   int current_gc_flags_ = Heap::kNoGCFlags;
