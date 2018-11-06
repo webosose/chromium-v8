@@ -36,7 +36,7 @@ class V8_EXPORT_PRIVATE MemoryController : public AllStatic {
  public:
   // Computes the growing step when the limit increases.
   static size_t MinimumAllocationLimitGrowingStep(
-      Heap::HeapGrowingMode growing_mode);
+      Heap* heap, Heap::HeapGrowingMode growing_mode);
 
   static double GrowingFactor(Heap* heap, size_t max_heap_size, double gc_speed,
                               double mutator_speed);

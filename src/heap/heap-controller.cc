@@ -115,10 +115,18 @@ double MemoryController<Trait>::DynamicGrowingFactor(double gc_speed,
 
 template <typename Trait>
 size_t MemoryController<Trait>::MinimumAllocationLimitGrowingStep(
-    Heap::HeapGrowingMode growing_mode) {
+    Heap* heap, Heap::HeapGrowingMode growing_mode) {
   const size_t kRegularAllocationLimitGrowingStep = 8;
   const size_t kLowMemoryAllocationLimitGrowingStep = 2;
   size_t limit = (Page::kPageSize > MB ? Page::kPageSize : MB);
+  if (FLAG_configure_heap_details)  {
+    if (FLAG_trace_configure_heap_details) {
+      Isolate::FromHeap(heap)->PrintWithTimestamp("MinimumAllocationLimitGrowingStep: %6zu \n",
+                               limit * heap->min_allocation_limit_growing_step_size());
+    }
+    return limit * heap->min_allocation_limit_growing_step_size();
+  }
+
   return limit * (growing_mode == Heap::HeapGrowingMode::kConservative
                       ? kLowMemoryAllocationLimitGrowingStep
                       : kRegularAllocationLimitGrowingStep);
@@ -154,7 +162,7 @@ size_t MemoryController<Trait>::CalculateAllocationLimit(
   const uint64_t limit =
       Max(static_cast<uint64_t>(current_size * factor),
           static_cast<uint64_t>(current_size) +
-              MinimumAllocationLimitGrowingStep(growing_mode)) +
+              MinimumAllocationLimitGrowingStep(heap, growing_mode)) +
       new_space_capacity;
   const uint64_t limit_above_min_size = Max<uint64_t>(limit, min_size);
   const uint64_t halfway_to_the_max =
