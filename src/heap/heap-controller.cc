@@ -117,6 +117,14 @@ size_t MemoryController::MinimumAllocationLimitGrowingStep(
   const size_t kRegularAllocationLimitGrowingStep = 8;
   const size_t kLowMemoryAllocationLimitGrowingStep = 2;
   size_t limit = (Page::kPageSize > MB ? Page::kPageSize : MB);
+  if (FLAG_configure_heap_details)  {
+    if (FLAG_trace_configure_heap_details) {
+      heap_->isolate()->PrintWithTimestamp("MinimumAllocationLimitGrowingStep: %" PRIuS "\n",
+                   limit * min_allocation_limit_growing_step_size_);
+    }
+    return limit * min_allocation_limit_growing_step_size_;
+  }
+
   return limit * (growing_mode == Heap::HeapGrowingMode::kConservative
                       ? kLowMemoryAllocationLimitGrowingStep
                       : kRegularAllocationLimitGrowingStep);

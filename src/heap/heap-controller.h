@@ -18,12 +18,14 @@ class V8_EXPORT_PRIVATE MemoryController {
   MemoryController(Heap* heap, double min_growing_factor,
                    double max_growing_factor,
                    double conservative_growing_factor,
-                   double target_mutator_utilization)
+                   double target_mutator_utilization,
+                   size_t min_allocation_limit_growing_step_size)
       : heap_(heap),
         min_growing_factor_(min_growing_factor),
         max_growing_factor_(max_growing_factor),
         conservative_growing_factor_(conservative_growing_factor),
-        target_mutator_utilization_(target_mutator_utilization) {}
+        target_mutator_utilization_(target_mutator_utilization),
+        min_allocation_limit_growing_step_size_(min_allocation_limit_growing_step_size) {}
   virtual ~MemoryController() = default;
 
   // Computes the allocation limit to trigger the next garbage collection.
@@ -46,6 +48,7 @@ class V8_EXPORT_PRIVATE MemoryController {
   const double max_growing_factor_;
   const double conservative_growing_factor_;
   const double target_mutator_utilization_;
+  const size_t min_allocation_limit_growing_step_size_;
 
   FRIEND_TEST(HeapControllerTest, HeapGrowingFactor);
   FRIEND_TEST(HeapControllerTest, MaxHeapGrowingFactor);
@@ -60,7 +63,7 @@ class V8_EXPORT_PRIVATE HeapController : public MemoryController {
   static constexpr size_t kMaxSize = 1024 * Heap::kPointerMultiplier;
 
   explicit HeapController(Heap* heap)
-      : MemoryController(heap, 1.1, 4.0, 1.3, 0.97) {}
+      : MemoryController(heap, 1.1, 4.0, 1.3, 0.97, heap->min_allocation_limit_growing_step_size()) {}
   double MaxGrowingFactor(size_t curr_max_size);
 
  protected:
