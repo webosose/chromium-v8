@@ -284,10 +284,17 @@ class Heap {
       return low_since_mark_compact_.load(std::memory_order_relaxed);
     }
 
+#if defined(USE_NEVA_APPRUNTIME)
+    void ResetAfterGC(int soft_limit) {
+      set_low_since_mark_compact(total());
+      set_limit(total() + soft_limit);
+    }
+#else
     void ResetAfterGC() {
       set_low_since_mark_compact(total());
       set_limit(total() + kExternalAllocationSoftLimit);
     }
+#endif
 
     int64_t Update(int64_t delta) {
       const int64_t amount =
@@ -733,7 +740,23 @@ class Heap {
   // For post mortem debugging.
   void RememberUnmappedPage(Address page, bool compacted);
 
+#if defined(USE_NEVA_APPRUNTIME)
+  int64_t external_memory_hard_limit() {
+    if (FLAG_configure_heap_details) {
+      return external_allocation_hard_limit_ * MB;
+    }
+    return MaxOldGenerationSize() / 2;
+  }
+
+  int external_memory_soft_limit() {
+    if (FLAG_configure_heap_details) {
+      return external_allocation_soft_limit_ * MB;
+    }
+    return kExternalAllocationSoftLimit;
+  }
+#else
   int64_t external_memory_hard_limit() { return max_old_generation_size() / 2; }
+#endif
 
   V8_INLINE int64_t external_memory();
   V8_EXPORT_PRIVATE int64_t external_memory_limit();
@@ -786,6 +809,12 @@ class Heap {
 
   void ConfigureHeap(const v8::ResourceConstraints& constraints);
   void ConfigureHeapDefault();
+#if defined(USE_NEVA_APPRUNTIME)
+  void ConfigureHeapDetails(size_t min_allocation_limit_growing_step_size,
+                            size_t high_fragmentation_slack,
+                            int external_allocation_hard_limit,
+                            int external_allocation_soft_limit);
+#endif
 
   // Prepares the heap, setting up for deserialization.
   void SetUp();
@@ -1528,6 +1557,12 @@ class Heap {
 
   static Isolate* GetIsolateFromWritableObject(HeapObject object);
 
+#if defined(USE_NEVA_APPRUNTIME)
+  size_t min_allocation_limit_growing_step_size() const {
+    return min_allocation_limit_growing_step_size_;
+  }
+#endif
+
  private:
   using ExternalStringTableUpdaterCallback = String (*)(Heap* heap,
                                                         FullObjectSlot pointer);
@@ -2053,6 +2088,12 @@ class Heap {
   bool old_generation_size_configured_ = false;
   size_t maximum_committed_ = 0;
   size_t old_generation_capacity_after_bootstrap_ = 0;
+#if defined(USE_NEVA_APPRUNTIME)
+  size_t min_allocation_limit_growing_step_size_ = 0;
+  size_t high_fragmentation_slack_ = 0;
+  int external_allocation_hard_limit_ = 0;
+  int external_allocation_soft_limit_ = 0;
+#endif
 
   // Backing store bytes (array buffers and external strings).
   std::atomic<size_t> backing_store_bytes_{0};
@@ -2258,6 +2299,9 @@ class Heap {
   // Flag is set when the heap has been configured.  The heap can be repeatedly
   // configured through the API until it is set up.
   bool configured_ = false;
+#if defined(USE_NEVA_APPRUNTIME)
+  bool configured_details_ = false;
+#endif
 
   // Currently set GC flags that are respected by all GC components.
   int current_gc_flags_ = Heap::kNoGCFlags;

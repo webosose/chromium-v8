@@ -951,6 +951,19 @@ void ResourceConstraints::ConfigureDefaults(uint64_t physical_memory,
   }
 }
 
+#if defined(USE_NEVA_APPRUNTIME)
+void ResourceConstraints::ConfigureDetails(
+    size_t min_allocation_limit_growing_step_size,
+    size_t high_fragmentation_slack, int external_allocation_hard_limit,
+    int external_allocation_soft_limit) {
+  set_min_allocation_limit_growing_step_size(
+      min_allocation_limit_growing_step_size);
+  set_high_fragmentation_slack(high_fragmentation_slack);
+  set_external_allocation_hard_limit(external_allocation_hard_limit);
+  set_external_allocation_soft_limit(external_allocation_soft_limit);
+}
+#endif
+
 size_t ResourceConstraints::max_semi_space_size_in_kb() const {
   return i::Heap::SemiSpaceSizeFromYoungGenerationSize(
              max_young_generation_size_) /
@@ -8354,6 +8367,15 @@ void Isolate::Initialize(Isolate* isolate,
   i_isolate->set_allow_atomics_wait(params.allow_atomics_wait);
 
   i_isolate->heap()->ConfigureHeap(params.constraints);
+
+#if defined(USE_NEVA_APPRUNTIME)
+  i_isolate->heap()->ConfigureHeapDetails(
+      params.constraints.min_allocation_limit_growing_step_size(),
+      params.constraints.high_fragmentation_slack(),
+      params.constraints.external_allocation_hard_limit(),
+      params.constraints.external_allocation_soft_limit());
+#endif
+
   if (params.constraints.stack_limit() != nullptr) {
     uintptr_t limit =
         reinterpret_cast<uintptr_t>(params.constraints.stack_limit());

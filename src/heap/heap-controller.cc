@@ -115,10 +115,24 @@ double MemoryController<Trait>::DynamicGrowingFactor(double gc_speed,
 
 template <typename Trait>
 size_t MemoryController<Trait>::MinimumAllocationLimitGrowingStep(
+#if defined(USE_NEVA_APPRUNTIME)
+    Heap* heap, Heap::HeapGrowingMode growing_mode) {
+#else
     Heap::HeapGrowingMode growing_mode) {
+#endif
   const size_t kRegularAllocationLimitGrowingStep = 8;
   const size_t kLowMemoryAllocationLimitGrowingStep = 2;
   size_t limit = (Page::kPageSize > MB ? Page::kPageSize : MB);
+#if defined(USE_NEVA_APPRUNTIME)
+  if (FLAG_configure_heap_details)  {
+    if (FLAG_trace_configure_heap_details) {
+      Isolate::FromHeap(heap)->PrintWithTimestamp("MinimumAllocationLimitGrowingStep: %6zu \n",
+                               limit * heap->min_allocation_limit_growing_step_size());
+    }
+    return limit * heap->min_allocation_limit_growing_step_size();
+  }
+#endif
+
   return limit * (growing_mode == Heap::HeapGrowingMode::kConservative
                       ? kLowMemoryAllocationLimitGrowingStep
                       : kRegularAllocationLimitGrowingStep);
@@ -154,7 +168,11 @@ size_t MemoryController<Trait>::CalculateAllocationLimit(
   const uint64_t limit =
       Max(static_cast<uint64_t>(current_size * factor),
           static_cast<uint64_t>(current_size) +
+#if defined(USE_NEVA_APPRUNTIME)
+              MinimumAllocationLimitGrowingStep(heap, growing_mode)) +
+#else
               MinimumAllocationLimitGrowingStep(growing_mode)) +
+#endif
       new_space_capacity;
   const uint64_t limit_above_min_size = Max<uint64_t>(limit, min_size);
   const uint64_t halfway_to_the_max =

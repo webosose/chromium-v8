@@ -7115,6 +7115,13 @@ class V8_EXPORT ResourceConstraints {
   void ConfigureDefaults(uint64_t physical_memory,
                          uint64_t virtual_memory_limit);
 
+#if defined(USE_NEVA_APPRUNTIME)
+  void ConfigureDetails(size_t min_allocation_limit_growing_step_size,
+                        size_t high_fragmentation_slack,
+                        int external_allocation_hard_limit,
+                        int external_allocation_soft_limit);
+#endif
+
   /**
    * The address beyond which the VM's stack may not grow.
    */
@@ -7191,6 +7198,30 @@ class V8_EXPORT ResourceConstraints {
   size_t max_zone_pool_size() const { return max_zone_pool_size_; }
   V8_DEPRECATE_SOON("Zone does not pool memory any more.")
   void set_max_zone_pool_size(size_t bytes) { max_zone_pool_size_ = bytes; }
+#if defined(USE_NEVA_APPRUNTIME)
+  void set_min_allocation_limit_growing_step_size(const size_t limit_in_mb) {
+    min_allocation_limit_growing_step_size_ = limit_in_mb;
+  }
+  size_t min_allocation_limit_growing_step_size() const {
+    return min_allocation_limit_growing_step_size_;
+  }
+  void set_high_fragmentation_slack(const size_t limit_in_mb) {
+    high_fragmentation_slack_ = limit_in_mb;
+  }
+  size_t high_fragmentation_slack() const { return high_fragmentation_slack_; }
+  void set_external_allocation_hard_limit(const int limit_in_mb) {
+    external_allocation_hard_limit_ = limit_in_mb;
+  }
+  int external_allocation_hard_limit() const {
+    return external_allocation_hard_limit_;
+  }
+  void set_external_allocation_soft_limit(const int limit_in_mb) {
+    external_allocation_soft_limit_ = limit_in_mb;
+  }
+  int external_allocation_soft_limit() const {
+    return external_allocation_soft_limit_;
+  }
+#endif
 
  private:
   static constexpr size_t kMB = 1048576u;
@@ -7201,6 +7232,12 @@ class V8_EXPORT ResourceConstraints {
   size_t initial_old_generation_size_ = 0;
   size_t initial_young_generation_size_ = 0;
   uint32_t* stack_limit_ = nullptr;
+#if defined(USE_NEVA_APPRUNTIME)
+  size_t min_allocation_limit_growing_step_size_ = 0;
+  size_t high_fragmentation_slack_ = 0;
+  int external_allocation_hard_limit_ = 0;
+  int external_allocation_soft_limit_ = 0;
+#endif
 };
 
 
