@@ -74,7 +74,7 @@ size_t MemoryController::CalculateAllocationLimit(
 
   if (FLAG_trace_gc_verbose) {
     heap_->isolate()->PrintWithTimestamp(
-        "%s factor %.1f based on mu=%.3f, speed_ratio=%.f "
+        "%s factor %.3f based on mu=%.3f, speed_ratio=%.f "
         "(gc=%.f, mutator=%.f)\n",
         ControllerName(), factor, target_mutator_utilization_,
         gc_speed / mutator_speed, gc_speed, mutator_speed);
@@ -105,7 +105,7 @@ size_t MemoryController::CalculateAllocationLimit(
 
   if (FLAG_trace_gc_verbose) {
     heap_->isolate()->PrintWithTimestamp(
-        "%s Limit: old size: %" PRIuS " KB, new limit: %" PRIuS " KB (%.1f)\n",
+        "%s Limit: old size: %" PRIuS " KB, new limit: %" PRIuS " KB (%.3f)\n",
         ControllerName(), curr_size / KB, result / KB, factor);
   }
 
