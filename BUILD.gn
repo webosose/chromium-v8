@@ -410,6 +410,9 @@ config("features") {
   if (v8_use_multi_snapshots) {
     defines += [ "V8_MULTI_SNAPSHOTS" ]
   }
+  if (v8_use_short_dst_delta) {
+    defines += [ "V8_USE_SHORT_DST_DELTA" ]
+  }
 }
 
 config("toolchain") {
