@@ -2758,6 +2758,11 @@ v8_source_set("v8_base") {
       "src/objects.cc",
       "src/parsing/parser.cc",
     ]
+    # For using snappy we undefine DISALLOW_COPY_AND_ASSIGN. That can break
+    # other files if v8 is built with jumbo.
+    if (use_neva_v8_snapshot) {
+      jumbo_excluded_sources += [ "src/snapshot/snapshot-common.cc" ]
+    }
   }
 
   if (v8_current_cpu == "x86") {
@@ -3099,6 +3104,10 @@ v8_source_set("v8_base") {
     deps += [ ":postmortem-metadata" ]
   }
 
+
+  if (use_neva_v8_snapshot) {
+    deps += [ "//third_party/snappy:snappy" ]
+  }
   # Platforms that don't have CAS support need to link atomic library
   # to implement atomic memory access
   if (v8_current_cpu == "mips" || v8_current_cpu == "mipsel" ||
