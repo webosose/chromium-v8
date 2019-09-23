@@ -19,7 +19,7 @@ double MemoryController<Trait>::GrowingFactor(Heap* heap, size_t max_heap_size,
       DynamicGrowingFactor(gc_speed, mutator_speed, max_factor);
   if (FLAG_trace_gc_verbose) {
     Isolate::FromHeap(heap)->PrintWithTimestamp(
-        "[%s] factor %.1f based on mu=%.3f, speed_ratio=%.f "
+        "[%s] factor %.3f based on mu=%.3f, speed_ratio=%.f "
         "(gc=%.f, mutator=%.f)\n",
         Trait::kName, factor, Trait::kTargetMutatorUtilization,
         gc_speed / mutator_speed, gc_speed, mutator_speed);
@@ -163,7 +163,7 @@ size_t MemoryController<Trait>::CalculateAllocationLimit(
       static_cast<size_t>(Min(limit_above_min_size, halfway_to_the_max));
   if (FLAG_trace_gc_verbose) {
     Isolate::FromHeap(heap)->PrintWithTimestamp(
-        "[%s] Limit: old size: %zu KB, new limit: %zu KB (%.1f)\n",
+        "[%s] Limit: old size: %zu KB, new limit: %zu KB (%.3f)\n",
         Trait::kName, current_size / KB, result / KB, factor);
   }
   return result;
