@@ -9,6 +9,7 @@ import("//build/config/host_byteorder.gni")
 import("//build/config/mips.gni")
 import("//build/config/sanitizers/sanitizers.gni")
 import("//build_overrides/build.gni")
+import("//neva/neva.gni")
 
 if (is_android) {
   import("//build/config/android/rules.gni")
@@ -4524,6 +4525,10 @@ if (current_toolchain == v8_snapshot_toolchain) {
       ":v8_tracing",
       "//build/win:default_exe_manifest",
     ]
+
+    if (use_lttng && current_toolchain == default_toolchain) {
+      deps += [ "//base/trace_event/neva/lttng:chromium_lttng_provider", ]
+    }
   }
 }
 
