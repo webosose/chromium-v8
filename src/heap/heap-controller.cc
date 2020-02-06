@@ -121,8 +121,8 @@ size_t MemoryController<Trait>::MinimumAllocationLimitGrowingStep(
   size_t limit = (Page::kPageSize > MB ? Page::kPageSize : MB);
   if (FLAG_configure_heap_details)  {
     if (FLAG_trace_configure_heap_details) {
-      heap->isolate()->PrintWithTimestamp("MinimumAllocationLimitGrowingStep: %6zu \n",
-                   limit * heap->min_allocation_limit_growing_step_size());
+      Isolate::FromHeap(heap)->PrintWithTimestamp("MinimumAllocationLimitGrowingStep: %6zu \n",
+                               limit * heap->min_allocation_limit_growing_step_size());
     }
     return limit * heap->min_allocation_limit_growing_step_size();
   }
