@@ -324,7 +324,11 @@ HARMONY_SHIPPING(FLAG_SHIPPING_FEATURES)
 #undef FLAG_SHIPPING_FEATURES
 
 #ifdef V8_INTL_SUPPORT
+#if defined(OS_WEBOS)
+DEFINE_BOOL(icu_timezone_data, false, "get information about timezones from ICU")
+#else
 DEFINE_BOOL(icu_timezone_data, true, "get information about timezones from ICU")
+#endif
 #endif
 
 #ifdef V8_ENABLE_DOUBLE_CONST_STORE_CHECK
