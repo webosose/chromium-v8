@@ -360,7 +360,11 @@ DEFINE_BOOL(enable_sharedarraybuffer_per_context, false,
             "enable the SharedArrayBuffer constructor per context")
 
 #ifdef V8_INTL_SUPPORT
+#if defined(OS_WEBOS)
+DEFINE_BOOL(icu_timezone_data, false, "get information about timezones from ICU")
+#else
 DEFINE_BOOL(icu_timezone_data, true, "get information about timezones from ICU")
+#endif
 #endif
 
 #ifdef V8_ENABLE_DOUBLE_CONST_STORE_CHECK
