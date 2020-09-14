@@ -11,7 +11,11 @@
 #define V8_MAJOR_VERSION 8
 #define V8_MINOR_VERSION 7
 #define V8_BUILD_NUMBER 220
+#if defined(OS_WEBOS) && defined(WEBOS_SUBMISSION_NUMBER)
+#define V8_PATCH_LEVEL (29*1000 + WEBOS_SUBMISSION_NUMBER)
+#else
 #define V8_PATCH_LEVEL 29
+#endif
 
 // Use 1 for candidates and 0 otherwise.
 // (Boolean macro values are not supported by all preprocessors.)
