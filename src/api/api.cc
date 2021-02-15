@@ -9192,8 +9192,15 @@ void v8::Isolate::DateTimeConfigurationChangeNotification(
   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(this);
   LOG_API(i_isolate, Isolate, DateTimeConfigurationChangeNotification);
   ENTER_V8_NO_SCRIPT_NO_EXCEPTION(i_isolate);
+#if !defined(OS_WEBOS)
   i_isolate->date_cache()->ResetDateCache(
       static_cast<base::TimezoneCache::TimeZoneDetection>(time_zone_detection));
+#else   // defined(OS_WEBOS)
+  // Due to in webOS non-standard timezones and DST can be used, timezone
+  // detection shall be disabled and date caches for all zones shall be reset.
+  i_isolate->date_cache()->ResetDateCache(
+      base::TimezoneCache::TimeZoneDetection::kSkip);
+#endif  // !defined(OS_WEBOS)
 #ifdef V8_INTL_SUPPORT
   i_isolate->clear_cached_icu_object(
       i::Isolate::ICUObjectCacheType::kDefaultSimpleDateFormat);
