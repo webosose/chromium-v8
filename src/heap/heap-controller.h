@@ -36,7 +36,11 @@ class V8_EXPORT_PRIVATE MemoryController : public AllStatic {
  public:
   // Computes the growing step when the limit increases.
   static size_t MinimumAllocationLimitGrowingStep(
+#if defined(USE_NEVA_APPRUNTIME)
+      Heap* heap, Heap::HeapGrowingMode growing_mode);
+#else
       Heap::HeapGrowingMode growing_mode);
+#endif
 
   static double GrowingFactor(Heap* heap, size_t max_heap_size, double gc_speed,
                               double mutator_speed);
