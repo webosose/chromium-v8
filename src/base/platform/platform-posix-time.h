@@ -14,6 +14,7 @@ class PosixDefaultTimezoneCache : public PosixTimezoneCache {
  public:
   const char* LocalTimezone(double time_ms) override;
   double LocalTimeOffset(double time_ms, bool is_utc) override;
+  double DaylightSavingsOffset(double time_ms) override;
 
   ~PosixDefaultTimezoneCache() override = default;
 };
